@@ -2,6 +2,7 @@
 Test for recipe APIs
 """
 from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -10,6 +11,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core.models import Recipe
+
 from recipe.serializers import (
     RecipeSerializer,
     RecipeDetailSerializer,
@@ -105,7 +107,7 @@ class PrivateRecipeAPITests(TestCase):
         """Test creating a recipe"""
         payload = {
             'title': 'Sample recipe',
-            'time': 30,
+            'time_minutes': 30,
             'price': Decimal('5.99'),
         }
         res = self.client.post(RECIPES_URL, payload)

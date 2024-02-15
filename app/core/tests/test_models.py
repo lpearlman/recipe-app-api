@@ -54,14 +54,14 @@ class ModelTests(TestCase):
         """Test create recipe successful"""
         user = get_user_model().objects.create_user(
             'test@example.com',
-            'testpass123'
+            'testpass123',
         )
         recipe = models.Recipe.objects.create(
             user=user,
             title='Sample recipe name',
             time_minutes=5,
             price=Decimal('5.50'),
-            description='Sample recipe desc'
+            description='Sample recipe desc',
         )
 
         self.assertEqual(str(recipe), recipe.title)
