@@ -29,10 +29,14 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Serializer for recipes."""
     tags = TagSerializer(many=True, required=False)
+    ingredients = IngredientSerializer(many=True, required=False)
 
     class Meta:
         model = Recipe
-        fields = ['id', 'title', 'time_minutes', 'price', 'link', 'tags']
+        fields = [
+            'id', 'title', 'time_minutes', 'price', 'link', 'tags',
+            'ingredients'
+        ]
         read_only_fields = ['id']
 
     def _get_or_create_tags(self, tags, recipe):
@@ -44,11 +48,22 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
             recipe.tags.add(tag_obj)
 
+    def _get_or_create_ingredients(self, ingredients, recipe):
+        auth_user = self.context['request'].user
+        for tag in ingredients:
+            tag_obj, created = Ingredient.objects.get_or_create(
+                user=auth_user,
+                **tag,
+            )
+            recipe.ingredients.add(tag_obj)
+
     def create(self, validated_data):
         """Create a recipe"""
         tags = validated_data.pop('tags', [])
+        ingredients = validated_data.pop('ingredients', [])
         recipe = Recipe.objects.create(**validated_data)
         self._get_or_create_tags(tags, recipe)
+        self._get_or_create_ingredients(ingredients, recipe)
 
         return recipe
 
@@ -58,6 +73,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         if tags is not None:
             instance.tags.clear()
             self._get_or_create_tags(tags, instance)
+
+        ingredients = validated_data.pop('ingredients', None)
+        if ingredients is not None:
+            instance.ingredients.clear()
+            self._get_or_create_ingredients(ingredients, instance)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -71,4 +91,3 @@ class RecipeDetailSerializer(RecipeSerializer):
 
     class Meta(RecipeSerializer.Meta):
         fields = RecipeSerializer.Meta.fields + ['description']
-
